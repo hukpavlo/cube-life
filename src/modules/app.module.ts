@@ -3,17 +3,17 @@ import { DynamooseModule } from 'nestjs-dynamoose';
 
 import { UserModule } from './user/user.module';
 import { AppController } from './app.controller';
+import { ConfigService } from '../shared/services/config.service';
 
 @Module({
   imports: [
     UserModule,
-    DynamooseModule.forRoot({
-      aws: {
-        region: process.env.AWS_REGION,
-        accessKeyId: process.env.ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      },
-      local: process.env.NODE_ENV !== 'prod',
+    DynamooseModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        aws: configService.AWS_CONFIG,
+        local: configService.get('NODE_ENV') !== 'production',
+      }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [AppController],
