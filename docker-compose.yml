@@ -4,26 +4,11 @@ services:
   cache:
     container_name: redis
     image: redis:latest
-    networks:
-      - main
     ports:
       - 6379:6379
   db:
-    container_name: mysql
-    image: mysql:latest
-    restart: always
-    networks:
-      - main
-    environment:
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    container_name: dynamodb
+    image: amazon/dynamodb-local:latest
+    command: -jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal
     ports:
-      - 3306:3306
-    volumes:
-      - mysql:/var/lib/mysql
-networks:
-  main:
-volumes:
-  mysql:
+      - 8000:8000

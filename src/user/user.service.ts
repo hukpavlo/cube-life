@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from './user.entity';
-import { Repository } from 'typeorm';
+import { InjectModel, Model } from 'nestjs-dynamoose';
+
+import { User, UserKey } from './user.interface';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectRepository(UserEntity) private userRepository: Repository<UserEntity>) {}
+  constructor(
+    @InjectModel('User')
+    private userModel: Model<User, UserKey>,
+  ) {}
 
   findAll() {
     return ['name', 'kek'];
   }
 
   create() {
-    return this.userRepository.save({ language: 'sd', username: 'Pavlo Huk' });
+    return this.userModel.create({ email: 'asds', name: 'Pavlos', id: 'sdfsdfsdasdasss' });
   }
 
   update() {

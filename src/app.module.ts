@@ -1,6 +1,5 @@
-import { Connection } from 'typeorm';
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { DynamooseModule } from 'nestjs-dynamoose';
 
 import { UserModule } from './user/user.module';
 import { AppController } from './app.controller';
@@ -8,20 +7,16 @@ import { AppController } from './app.controller';
 @Module({
   imports: [
     UserModule,
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      database: process.env.DB_NAME,
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
+    DynamooseModule.forRoot({
+      aws: {
+        region: process.env.AWS_REGION,
+        accessKeyId: process.env.ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+      local: process.env.NODE_ENV !== 'prod',
     }),
   ],
   controllers: [AppController],
   providers: [],
 })
-export class AppModule {
-  constructor(private readonly connection: Connection) {}
-}
+export class AppModule {}
