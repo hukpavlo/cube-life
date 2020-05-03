@@ -1,5 +1,7 @@
 import * as dotenv from 'dotenv';
 
+import { IAWSConfig } from 'src/interfaces/config';
+
 export class ConfigService {
   constructor() {
     dotenv.config({ path: `.${this.NODE_ENV}.env` });
@@ -9,19 +11,19 @@ export class ConfigService {
     }
   }
 
-  get(key: string) {
+  get(key: string): string {
     return process.env[key];
   }
 
-  getNumber(key: string) {
+  getNumber(key: string): number {
     return Number(this.get(key));
   }
 
-  get NODE_ENV() {
+  get NODE_ENV(): string {
     return this.get('NODE_ENV') || 'development';
   }
 
-  get AWS_CONFIG() {
+  get AWS_CONFIG(): IAWSConfig {
     return {
       region: this.get('AWS_REGION'),
       accessKeyId: this.get('AWS_ACCESS_KEY_ID'),

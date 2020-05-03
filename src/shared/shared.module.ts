@@ -1,10 +1,12 @@
 import { Module, Global } from '@nestjs/common';
 
-const services = [];
+import { ConfigService } from './services/config.service';
+
+const services = [ConfigService];
 
 @Global()
 @Module({
+  exports: services,
   providers: services,
-  exports: [...services],
 })
 export class SharedModule {}
