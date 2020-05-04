@@ -3,6 +3,6 @@ export interface UserKey {
 }
 
 export interface User extends UserKey {
-  name: string;
-  email?: string;
+  username: string;
+  password: string;
 }

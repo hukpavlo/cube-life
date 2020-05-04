@@ -1,17 +1,19 @@
 import { Module } from '@nestjs/common';
 import { DynamooseModule } from 'nestjs-dynamoose';
 
+import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { AppController } from './app.controller';
-import { SharedModule } from '../shared/shared.module';
-import { ConfigService } from '../shared/services/config.service';
+import { SharedModule } from './shared/shared.module';
+import { ConfigService } from './shared/config.service';
 
 @Module({
   imports: [
     UserModule,
+    AuthModule,
     DynamooseModule.forRootAsync({
-      inject: [ConfigService],
       imports: [SharedModule],
+      inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         aws: configService.AWS_CONFIG,
         local: configService.get('NODE_ENV') !== 'production',

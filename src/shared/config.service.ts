@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 
-import { IAWSConfig } from 'src/interfaces/config';
+import { IAWSConfig } from './interfaces/config';
 
 export class ConfigService {
   constructor() {

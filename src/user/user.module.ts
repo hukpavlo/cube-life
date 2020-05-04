@@ -6,6 +6,7 @@ import { UserService } from './user.service';
 import { UserController } from './user.controller';
 
 @Module({
+  exports: [UserService],
   providers: [UserService],
   controllers: [UserController],
   imports: [DynamooseModule.forFeature([UserModel])],
