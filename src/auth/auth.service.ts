@@ -1,4 +1,5 @@
 import * as bcrypt from 'bcrypt';
+import * as nodemailer from 'nodemailer';
 import { JwtService } from '@nestjs/jwt';
 import {
   Injectable,
@@ -44,9 +45,7 @@ export class AuthService {
   async register(createUserDto: CreateUserDto): Promise<IRegistration> {
     const user = await this.userService.create(createUserDto, false);
 
-    const code = user.confirmationCode;
-
-    //todo send code to email
+    await this.sendConfirmationEmail(user.email, user.confirmationCode);
 
     return { message: 'The confirmation code was sent' };
   }
@@ -98,5 +97,24 @@ export class AuthService {
       accessToken: this.jwtService.sign(payload),
       refreshToken: '', //todo
     };
+  }
+
+  async sendConfirmationEmail(email, code): Promise<void> {
+    const gmailUser = this.configService.get('GMAIL_USER');
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: gmailUser,
+        pass: this.configService.get('GMAIL_PASSWORD'),
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"CubeLife" <${gmailUser}>`,
+      to: email,
+      subject: 'CubeLife',
+      html: `<h3>Welcome to CubeLife!</h3>Your confirmation code: <b>${code}</b>`,
+    });
   }
 }

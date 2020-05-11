@@ -28,8 +28,8 @@ export class UserService {
     };
 
     if (!confirmed) {
-      const randomSixDigitCode = (Math.random() * 10e6).toFixed();
-      newUser.confirmationCode = randomSixDigitCode;
+      const randomSixDigitCode = (Math.random() * 899999 + 100000).toFixed();
+      newUser.confirmationCode = randomSixDigitCode; //todo add limit for 1 code
     }
 
     if (newUser.password) {
