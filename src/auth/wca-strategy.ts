@@ -4,8 +4,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
 import { ConfigService } from '../shared/config.service';
-import { LoggerService } from 'src/shared/logger.service';
-import { UserService } from 'src/user/user.service';
+import { LoggerService } from '../shared/logger.service';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class WcaStrategy extends PassportStrategy(Strategy, 'wca') {

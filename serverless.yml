@@ -1,0 +1,33 @@
+service: cube-life
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: eu-central-1
+  profile: personal
+  stage: prod
+
+package:
+  exclude:
+    - .git/**
+    - src/**
+    - test/**
+    - e2e/**
+    - nodemon.json
+    - README.md
+
+functions:
+  main:
+    handler: dist/lambda.handler
+    events:
+      - http:
+          cors: true
+          path: '/'
+          method: any
+      - http:
+          cors: true
+          path: '{proxy+}'
+          method: any
+
+plugins:
+  - serverless-dotenv-plugin
