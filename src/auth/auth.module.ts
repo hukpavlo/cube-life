@@ -1,11 +1,10 @@
 import { JwtModule } from '@nestjs/jwt';
-import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
+import { Module, HttpModule } from '@nestjs/common';
 
-import { JwtStrategy } from './jwt.strategy';
+import { WcaStrategy } from './wca-strategy';
 import { AuthService } from './auth.service';
 import { UserModule } from '../user/user.module';
-import { LocalStrategy } from './local.strategy';
 import { AuthController } from './auth.controller';
 import { SharedModule } from '../shared/shared.module';
 import { ConfigService } from '../shared/config.service';
@@ -13,17 +12,18 @@ import { ConfigService } from '../shared/config.service';
 @Module({
   imports: [
     UserModule,
+    HttpModule,
     PassportModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       imports: [SharedModule],
       useFactory: (configService: ConfigService) => ({
-        signOptions: { expiresIn: '60s' },
+        signOptions: { expiresIn: '1h' },
         secret: configService.get('JWT_SECRET'),
       }),
     }),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, WcaStrategy],
   controllers: [AuthController],
   exports: [AuthService],
 })

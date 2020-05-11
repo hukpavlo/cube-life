@@ -1,17 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { Injectable, HttpService } from '@nestjs/common';
 
-import { UserService } from '../user/user.service';
+import { User, UserDB } from '../user/user.interface';
+import { ConfigService } from 'src/shared/config.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UserService) {}
+  constructor(private configService: ConfigService, private httpService: HttpService, private jwtService: JwtService) {}
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(username);
-    if (user && user.password === pass) {
-      const { password, ...result } = user;
-      return result;
-    }
-    return null;
+  async getWcaUser(accessToken: string): Promise<User> {
+    const response = await this.httpService
+      .get(`${this.configService.get('WCA_BASE_URL')}/api/v0/me`, {
+        headers: { authorization: `Bearer ${accessToken}` },
+      })
+      .toPromise();
+
+    const user = response.data.me;
+
+    return {
+      username: user.name,
+      email: user.email,
+    };
+  }
+
+  async login(user: UserDB) {
+    const payload = { username: user.username, sub: user.id };
+
+    return {
+      accessToken: this.jwtService.sign(payload),
+    };
   }
 }

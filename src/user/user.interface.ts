@@ -1,8 +1,13 @@
 export interface UserKey {
-  id: string;
+  id?: string;
 }
 
-export interface User extends UserKey {
+export interface User {
   username: string;
-  password: string;
+  email: string;
+}
+
+export interface UserDB extends UserKey, User {
+  createdAt?: Date;
+  updatedAt?: Date;
 }

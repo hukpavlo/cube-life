@@ -1,8 +1,9 @@
 import { Module, Global } from '@nestjs/common';
 
 import { ConfigService } from './config.service';
+import { LoggerService } from './logger.service';
 
-const services = [ConfigService];
+const services = [ConfigService, LoggerService];
 
 @Global()
 @Module({

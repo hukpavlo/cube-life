@@ -16,7 +16,7 @@ import { ConfigService } from './shared/config.service';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         aws: configService.AWS_CONFIG,
-        local: configService.get('NODE_ENV') !== 'production',
+        local: false,
       }),
     }),
   ],
