@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import { Injectable } from '@nestjs/common';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 
@@ -18,6 +19,11 @@ export class UserService {
       .limit(1)
       .exec();
 
-    return sameUser ? sameUser : this.userModel.create(user);
+    if (sameUser) return sameUser;
+
+    return this.userModel.create({
+      id: uuid(),
+      ...user,
+    });
   }
 }
