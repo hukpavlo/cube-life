@@ -3,11 +3,14 @@ export interface UserKey {
 }
 
 export interface User {
-  username: string;
   email: string;
+  username: string;
+  password?: string;
 }
 
 export interface UserDB extends UserKey, User {
+  confirmed: boolean;
+  confirmationCode?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

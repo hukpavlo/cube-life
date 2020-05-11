@@ -5,16 +5,10 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ConfigService } from '../shared/config.service';
 import { LoggerService } from '../shared/logger.service';
-import { UserService } from '../user/user.service';
 
 @Injectable()
 export class WcaStrategy extends PassportStrategy(Strategy, 'wca') {
-  constructor(
-    configService: ConfigService,
-    private logger: LoggerService,
-    private authService: AuthService,
-    private userService: UserService,
-  ) {
+  constructor(configService: ConfigService, private logger: LoggerService, private authService: AuthService) {
     super({
       authorizationURL: `${configService.get('WCA_BASE_URL')}/oauth/authorize`,
       tokenURL: `${configService.get('WCA_BASE_URL')}/oauth/token`,
@@ -28,14 +22,13 @@ export class WcaStrategy extends PassportStrategy(Strategy, 'wca') {
 
   async validate(accessToken: string, refreshToken: string, profile: undefined, done: VerifyCallback) {
     try {
-      const wcaUser = await this.authService.getWcaUser(accessToken);
-      const user = await this.userService.create(wcaUser);
+      const wcaUser = await this.authService.registerWca(accessToken);
 
-      done(null, user);
+      done(null, wcaUser);
     } catch (err) {
       this.logger.error(err.message, err);
 
-      done(new UnauthorizedException());
+      done(new UnauthorizedException("Cann't get WCA profile"));
     }
   }
 }
