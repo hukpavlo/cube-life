@@ -28,8 +28,7 @@ export class UserService {
     };
 
     if (!confirmed) {
-      const randomSixDigitCode = (Math.random() * 899999 + 100000).toFixed();
-      newUser.confirmationCode = randomSixDigitCode; //todo add limit for 1 code
+      newUser.confirmationCode = this.generateConfirmationCode(); //todo add limit for 1 code
     }
 
     if (newUser.password) {
@@ -55,5 +54,19 @@ export class UserService {
       { id },
       { $REMOVE: { confirmationCode: null }, confirmed: true },
     );
+  }
+
+  async changeConfirmationCode(id: string, code: string) {
+    return this.userModel.update({ id }, { confirmationCode: code });
+  }
+
+  async resetPassword(id: string, password: string) {
+    const newPassword = await bcrypt.hash(password, 10);
+
+    return this.userModel.update({ id }, { password: newPassword });
+  }
+
+  generateConfirmationCode() {
+    return (Math.random() * 899999 + 100000).toFixed();
   }
 }

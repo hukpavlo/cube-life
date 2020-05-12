@@ -29,6 +29,7 @@ export class AuthController {
 
   @Put('register')
   async confirmRegistration(
+    //todo validate body
     @Body('email') email: string,
     @Body('confirmationCode') code: string,
   ) {
@@ -36,18 +37,24 @@ export class AuthController {
   }
 
   @Put('code')
-  async resendCode() {
-    //todo
+  async resendCode(@Body('email') email: string) {
+    //todo validate body
+    return this.authService.resendConfirmationCode(email);
   }
 
   @Post('password')
-  async resetPassword() {
-    //todo
+  async forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
   }
 
   @Put('password')
-  async confirmPasswordReset() {
-    //todo
+  async resetPassword(
+    @Body('email') email: string,
+    @Body('newPassword') password: string,
+    @Body('confirmationCode') code: string,
+  ) {
+    //todo validate body
+    return this.authService.resetPassword(email, password, code);
   }
 
   @Post('login')
