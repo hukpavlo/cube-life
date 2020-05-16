@@ -24,7 +24,21 @@ export const UserModel: ModelDefinition = {
         required: true,
       },
       confirmationCode: {
-        type: String,
+        type: Object,
+        schema: {
+          value: {
+            type: String,
+            required: true,
+          },
+          expiresAt: {
+            type: Number,
+            required: true,
+          },
+          attemptsBalance: {
+            type: Number,
+            required: true,
+          },
+        },
         required: false,
       },
       email: {

@@ -20,6 +20,7 @@ import { ConfigService } from '../shared/config.service';
 import { IMessage } from './interfaces/message.interface';
 import { IRefresh } from './interfaces/refresh.interface';
 import { CreateUserDto } from '../user/dto/create-user.dto';
+import { MAX_ATTEMPTS_BALANCE } from 'src/user/constants/attempts-balance';
 
 @Injectable()
 export class AuthService {
@@ -47,7 +48,7 @@ export class AuthService {
   async register(createUserDto: CreateUserDto): Promise<IMessage> {
     const user = await this.userService.create(createUserDto, false);
 
-    await this.sendConfirmationEmail(user.email, user.confirmationCode);
+    await this.sendConfirmationEmail(user.email, user.confirmationCode.value);
 
     return { message: 'The confirmation code was sent' };
   }
@@ -63,9 +64,7 @@ export class AuthService {
       throw new GoneException('User with such email is already confirmed');
     }
 
-    if (user.confirmationCode !== code) {
-      throw new ForbiddenException('Wrong confirmation code');
-    }
+    await this.validateConfirmationCode(user.id, user.confirmationCode, code);
 
     await this.userService.confirm(user.id);
 
@@ -111,7 +110,7 @@ export class AuthService {
       throw new ConflictException("The forgot password process wasn't initialized");
     }
 
-    if (user.confirmationCode !== code) {
+    if (user.confirmationCode.value !== code) {
       throw new ForbiddenException('Wrong confirmation code');
     }
 
@@ -144,14 +143,14 @@ export class AuthService {
     const confirmationCode = this.userService.generateConfirmationCode();
 
     await Promise.all([
-      this.sendConfirmationEmail(email, confirmationCode),
+      this.sendConfirmationEmail(email, confirmationCode.value),
       this.userService.changeConfirmationCode(userId, confirmationCode),
     ]);
 
     return { message: 'The new confirmation code was sent' };
   }
 
-  async sendConfirmationEmail(email, code): Promise<void> {
+  async sendConfirmationEmail(email: string, code: string): Promise<void> {
     const gmailUser = this.configService.get('GMAIL_USER');
 
     const transporter = nodemailer.createTransport({
@@ -168,6 +167,31 @@ export class AuthService {
       subject: 'CubeLife',
       html: `<h3>Welcome to CubeLife!</h3>Your confirmation code: <b>${code}</b>`,
     });
+  }
+
+  async validateConfirmationCode(
+    userId,
+    confirmationCode: UserDB['confirmationCode'],
+    code: string,
+  ) {
+    if (Date.now() > confirmationCode.expiresAt * 1000) {
+      throw new ForbiddenException('Confirmation code expired. Try to send a new one.');
+    }
+
+    if (!confirmationCode.attemptsBalance) {
+      throw new ForbiddenException(
+        "You've reached the max confirmation attempts per one code. Try to send a new one.",
+      );
+    }
+
+    if (confirmationCode.value !== code) {
+      await this.userService.changeConfirmationCode(userId, {
+        ...confirmationCode,
+        attemptsBalance: confirmationCode.attemptsBalance - 1,
+      });
+
+      throw new ForbiddenException('Wrong confirmation code');
+    }
   }
 
   login(user: UserDB): ILogin {

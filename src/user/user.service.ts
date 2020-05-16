@@ -3,7 +3,9 @@ import { v4 as uuid } from 'uuid';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 import { Injectable, ConflictException } from '@nestjs/common';
 
+import { FIVE_MINUTES } from './constants/time';
 import { User, UserDB, UserKey } from './user.interface';
+import { MAX_ATTEMPTS_BALANCE } from './constants/attempts-balance';
 
 @Injectable()
 export class UserService {
@@ -28,7 +30,7 @@ export class UserService {
     };
 
     if (!confirmed) {
-      newUser.confirmationCode = this.generateConfirmationCode(); //todo add limit for 1 code
+      newUser.confirmationCode = this.generateConfirmationCode();
     }
 
     if (newUser.password) {
@@ -50,13 +52,10 @@ export class UserService {
   }
 
   async confirm(id: string) {
-    return this.userModel.update(
-      { id },
-      { $REMOVE: { confirmationCode: null }, confirmed: true },
-    );
+    return this.userModel.update({ id }, { $REMOVE: { confirmationCode: null }, confirmed: true });
   }
 
-  async changeConfirmationCode(id: string, code: string) {
+  async changeConfirmationCode(id: string, code: UserDB['confirmationCode']) {
     return this.userModel.update({ id }, { confirmationCode: code });
   }
 
@@ -67,6 +66,10 @@ export class UserService {
   }
 
   generateConfirmationCode() {
-    return (1e5 + Math.random() * (9e5 - 1)).toFixed();
+    return {
+      attemptsBalance: MAX_ATTEMPTS_BALANCE,
+      expiresAt: Math.floor((Date.now() + FIVE_MINUTES) / 1000),
+      value: (1e5 + Math.random() * (9e5 - 1)).toFixed(),
+    };
   }
 }

@@ -10,7 +10,11 @@ export interface User {
 
 export interface UserDB extends UserKey, User {
   confirmed: boolean;
-  confirmationCode?: string;
+  confirmationCode?: {
+    value: string;
+    expiresAt: number;
+    attemptsBalance: number;
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }
