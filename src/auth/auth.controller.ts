@@ -4,8 +4,13 @@ import { AuthService } from './auth.service';
 import { UserDB } from '../user/user.interface';
 import { WcaAuthGuard } from './wca-auth.guard';
 import { AuthUser } from './auth-user.decorator';
+import { RegisterDto } from './dto/register.dto';
 import { LocalAuthGuard } from './local-auth.guard';
+import { ResendCodeDto } from './dto/resend-code.dto';
 import { CreateUserDto } from '../user/dto/create-user.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -23,38 +28,31 @@ export class AuthController {
 
   @Post('register')
   register(@Body() createUserDto: CreateUserDto) {
-    //todo validate body
     return this.authService.register(createUserDto);
   }
 
   @Put('register')
-  confirmRegistration(
-    //todo validate body
-    @Body('email') email: string,
-    @Body('confirmationCode') code: string,
-  ) {
-    return this.authService.confirmRegistration(email, code);
+  confirmRegistration(@Body() registerDto: RegisterDto) {
+    return this.authService.confirmRegistration(registerDto.email, registerDto.confirmationCode);
   }
 
   @Put('code')
-  resendCode(@Body('email') email: string) {
-    //todo validate body
-    return this.authService.resendConfirmationCode(email);
+  resendCode(@Body() resendCodeDto: ResendCodeDto) {
+    return this.authService.resendConfirmationCode(resendCodeDto.email);
   }
 
   @Post('password')
-  forgotPassword(@Body('email') email: string) {
-    return this.authService.forgotPassword(email);
+  forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto.email);
   }
 
   @Put('password')
-  resetPassword(
-    @Body('email') email: string,
-    @Body('newPassword') password: string,
-    @Body('confirmationCode') code: string,
-  ) {
-    //todo validate body
-    return this.authService.resetPassword(email, password, code);
+  resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(
+      resetPasswordDto.email,
+      resetPasswordDto.newPassword,
+      resetPasswordDto.confirmationCode,
+    );
   }
 
   @Post('login')
@@ -64,8 +62,7 @@ export class AuthController {
   }
 
   @Put('token')
-  refreshToken(@Body('refreshToken') refreshToken: string) {
-    // todo validate body
-    return this.authService.refreshToken(refreshToken);
+  refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authService.refreshToken(refreshTokenDto.refreshToken);
   }
 }

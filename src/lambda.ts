@@ -1,6 +1,7 @@
 import { Server } from 'http';
 import * as express from 'express';
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import * as awsServerlessExpress from 'aws-serverless-express';
@@ -14,6 +15,7 @@ const bootstrapServer = async (): Promise<Server> => {
   const adapter = new ExpressAdapter(expressApp);
 
   const app = await NestFactory.create(AppModule, adapter);
+  app.useGlobalPipes(new ValidationPipe());
   app.enableCors();
   await app.init();
 

@@ -20,7 +20,6 @@ import { ConfigService } from '../shared/config.service';
 import { IMessage } from './interfaces/message.interface';
 import { IRefresh } from './interfaces/refresh.interface';
 import { CreateUserDto } from '../user/dto/create-user.dto';
-import { MAX_ATTEMPTS_BALANCE } from 'src/user/constants/attempts-balance';
 
 @Injectable()
 export class AuthService {
