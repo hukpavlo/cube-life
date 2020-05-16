@@ -67,6 +67,6 @@ export class UserService {
   }
 
   generateConfirmationCode() {
-    return (Math.random() * 899999 + 100000).toFixed();
+    return (1e5 + Math.random() * (9e5 - 1)).toFixed();
   }
 }

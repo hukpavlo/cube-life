@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
 import * as nodemailer from 'nodemailer';
-import { JwtService } from '@nestjs/jwt';
 import {
   Injectable,
   HttpService,
@@ -9,6 +9,7 @@ import {
   ConflictException,
   ForbiddenException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 
 import { UserService } from '../user/user.service';
@@ -17,6 +18,7 @@ import { ILogin } from './interfaces/login.interface';
 import { IJwtPayload } from './interfaces/jwt.interface';
 import { ConfigService } from '../shared/config.service';
 import { IMessage } from './interfaces/message.interface';
+import { IRefresh } from './interfaces/refresh.interface';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 
 @Injectable()
@@ -25,7 +27,6 @@ export class AuthService {
     private configService: ConfigService,
     private httpService: HttpService,
     private userService: UserService,
-    private jwtService: JwtService,
   ) {}
 
   async registerWca(accessToken: string): Promise<User> {
@@ -107,7 +108,7 @@ export class AuthService {
     }
 
     if (!user.confirmationCode) {
-      throw new ConflictException('The forgot password process wasn\'t initialized');
+      throw new ConflictException("The forgot password process wasn't initialized");
     }
 
     if (user.confirmationCode !== code) {
@@ -139,15 +140,6 @@ export class AuthService {
     return user;
   }
 
-  login(user: UserDB): ILogin {
-    const payload: IJwtPayload = { username: user.username, sub: user.id };
-
-    return {
-      accessToken: this.jwtService.sign(payload),
-      refreshToken: '', //todo
-    };
-  }
-
   async sendNewConfirmationCode(userId, email): Promise<IMessage> {
     const confirmationCode = this.userService.generateConfirmationCode();
 
@@ -176,5 +168,33 @@ export class AuthService {
       subject: 'CubeLife',
       html: `<h3>Welcome to CubeLife!</h3>Your confirmation code: <b>${code}</b>`,
     });
+  }
+
+  login(user: UserDB): ILogin {
+    const payload: IJwtPayload = { username: user.username, sub: user.id };
+
+    return {
+      accessToken: jwt.sign(payload, this.configService.get('ACCESS_SECRET'), { expiresIn: '1h' }),
+      refreshToken: jwt.sign(payload, this.configService.get('REFRESH_SECRET'), {
+        expiresIn: '30d',
+      }),
+    };
+  }
+
+  refreshToken(refreshToken: string): IRefresh {
+    try {
+      const { username, sub } = jwt.verify(
+        refreshToken,
+        this.configService.get('REFRESH_SECRET'),
+      ) as IJwtPayload;
+
+      return {
+        accessToken: jwt.sign({ username, sub }, this.configService.get('ACCESS_SECRET'), {
+          expiresIn: '1h',
+        }),
+      };
+    } catch (err) {
+      throw new BadRequestException(err.message);
+    }
   }
 }

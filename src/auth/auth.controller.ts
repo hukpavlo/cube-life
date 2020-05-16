@@ -22,13 +22,13 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(@Body() createUserDto: CreateUserDto) {
+  register(@Body() createUserDto: CreateUserDto) {
     //todo validate body
     return this.authService.register(createUserDto);
   }
 
   @Put('register')
-  async confirmRegistration(
+  confirmRegistration(
     //todo validate body
     @Body('email') email: string,
     @Body('confirmationCode') code: string,
@@ -37,18 +37,18 @@ export class AuthController {
   }
 
   @Put('code')
-  async resendCode(@Body('email') email: string) {
+  resendCode(@Body('email') email: string) {
     //todo validate body
     return this.authService.resendConfirmationCode(email);
   }
 
   @Post('password')
-  async forgotPassword(@Body('email') email: string) {
+  forgotPassword(@Body('email') email: string) {
     return this.authService.forgotPassword(email);
   }
 
   @Put('password')
-  async resetPassword(
+  resetPassword(
     @Body('email') email: string,
     @Body('newPassword') password: string,
     @Body('confirmationCode') code: string,
@@ -59,12 +59,13 @@ export class AuthController {
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
-  async login(@AuthUser() user: UserDB) {
+  login(@AuthUser() user: UserDB) {
     return this.authService.login(user);
   }
 
   @Put('token')
-  async refreshToken() {
-    //todo
+  refreshToken(@Body('refreshToken') refreshToken: string) {
+    // todo validate body
+    return this.authService.refreshToken(refreshToken);
   }
 }
