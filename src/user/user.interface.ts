@@ -1,3 +1,5 @@
+import { RegistrationType } from './constants';
+
 export interface UserKey {
   id?: string;
 }
@@ -10,6 +12,7 @@ export interface User {
 
 export interface UserDB extends UserKey, User {
   confirmed: boolean;
+  from: RegistrationType;
   confirmationCode?: {
     value: string;
     expiresAt: number;

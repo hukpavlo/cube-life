@@ -3,9 +3,8 @@ import { v4 as uuid } from 'uuid';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 import { Injectable, ConflictException } from '@nestjs/common';
 
-import { FIVE_MINUTES } from './constants/time';
 import { User, UserDB, UserKey } from './user.interface';
-import { MAX_ATTEMPTS_BALANCE } from './constants/attempts-balance';
+import { FIVE_MINUTES, MAX_ATTEMPTS_BALANCE, RegistrationType } from './constants';
 
 @Injectable()
 export class UserService {
@@ -14,22 +13,24 @@ export class UserService {
     private userModel: Model<UserDB, UserKey>,
   ) {}
 
-  async create(user: User, oauth = true) {
-    const sameUser = await this.find(user.email);
+  async create(user: User, registrationType: RegistrationType) {
+    const sameUser = await this.find(user.email, registrationType);
+    const confirmed = registrationType !== RegistrationType.MANUAL;
 
     if (sameUser) {
-      if (oauth) return sameUser;
+      if (confirmed) return sameUser;
 
       throw new ConflictException('User with such email already exists');
     }
 
     const newUser: UserDB = {
+      confirmed,
       id: uuid(),
-      confirmed: oauth,
+      from: registrationType,
       ...user,
     };
 
-    if (!oauth) {
+    if (!confirmed) {
       newUser.confirmationCode = this.generateConfirmationCode();
     }
 
@@ -40,14 +41,16 @@ export class UserService {
     return this.userModel.create(newUser);
   }
 
-  async find(email: string) {
+  async find(email: string, registrationType = RegistrationType.MANUAL) {
     const [user] = await this.userModel
       .query('email')
       .eq(email.toLowerCase())
       .using('email-index')
-      .limit(1)
+      .limit(Object.keys(RegistrationType).length)
+      .filter('from')
+      .eq(registrationType)
       .exec();
-
+    
     return user;
   }
 

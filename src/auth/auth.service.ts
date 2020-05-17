@@ -3,7 +3,6 @@ import * as jwt from 'jsonwebtoken';
 import * as nodemailer from 'nodemailer';
 import {
   Injectable,
-  HttpService,
   GoneException,
   NotFoundException,
   ConflictException,
@@ -13,9 +12,10 @@ import {
 } from '@nestjs/common';
 
 import { LoginDto } from './dto/login.dto';
+import { UserDB } from '../user/user.interface';
 import { RegisterDto } from './dto/register.dto';
 import { UserService } from '../user/user.service';
-import { User, UserDB } from '../user/user.interface';
+import { RegistrationType } from '../user/constants';
 import { ResendCodeDto } from './dto/resend-code.dto';
 import { ITokens } from './interfaces/tokens.interface';
 import { IJwtPayload } from './interfaces/jwt.interface';
@@ -29,29 +29,9 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private configService: ConfigService,
-    private httpService: HttpService,
-    private userService: UserService,
-  ) {}
-
-  async registerWca(accessToken: string): Promise<User> {
-    const response = await this.httpService
-      .get(`${this.configService.get('WCA_BASE_URL')}/api/v0/me`, {
-        headers: { authorization: `Bearer ${accessToken}` },
-      })
-      .toPromise();
-
-    const wcaUser = response.data.me;
-
-    return this.userService.create({
-      username: wcaUser.name,
-      email: wcaUser.email,
-    });
-  }
-
+  constructor(private configService: ConfigService, private userService: UserService) {}
   async register(createUserDto: CreateUserDto): Promise<IMessage> {
-    const user = await this.userService.create(createUserDto, false);
+    const user = await this.userService.create(createUserDto, RegistrationType.MANUAL);
 
     await this.sendConfirmationEmail(user.email, user.confirmationCode.value);
 

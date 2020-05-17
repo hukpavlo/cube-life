@@ -2,6 +2,8 @@ import { v4 as uuid } from 'uuid';
 import { Schema } from 'dynamoose';
 import { ModelDefinition } from 'nestjs-dynamoose';
 
+import { RegistrationType } from './constants';
+
 export const UserModel: ModelDefinition = {
   name: 'users',
   schema: new Schema(
@@ -18,6 +20,11 @@ export const UserModel: ModelDefinition = {
       password: {
         type: String,
         required: false,
+      },
+      from: {
+        type: String,
+        enum: Object.values(RegistrationType),
+        required: true,
       },
       confirmed: {
         type: Boolean,

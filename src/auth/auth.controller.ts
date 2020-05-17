@@ -6,6 +6,7 @@ import { UserDB } from '../user/user.interface';
 import { WcaAuthGuard } from './wca-auth.guard';
 import { AuthUser } from './auth-user.decorator';
 import { RegisterDto } from './dto/register.dto';
+import { GoogleAuthGuard } from './google-auth.guard';
 import { ResendCodeDto } from './dto/resend-code.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
@@ -23,6 +24,16 @@ export class AuthController {
   @Get('wca/callback')
   @UseGuards(WcaAuthGuard)
   wcaAuthCallback(@AuthUser() user: UserDB) {
+    return this.authService.generateTokens(user);
+  }
+
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  googleAuth() {}
+
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  googleAuthCallback(@AuthUser() user: UserDB) {
     return this.authService.generateTokens(user);
   }
 
