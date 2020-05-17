@@ -1,10 +1,10 @@
-import { IsEmail, IsString, Length } from 'class-validator';
+import { IsEmail, Length, IsNumberString } from 'class-validator';
 
 export class RegisterDto {
   @IsEmail()
   readonly email: string;
 
-  @IsString()
-  @Length(6)
+  @IsNumberString()
+  @Length(6, 6, { message: 'confirmationCode must be equal to 6 characters' })
   readonly confirmationCode: string;
 }

@@ -4,13 +4,12 @@ import { Module, HttpModule } from '@nestjs/common';
 
 import { WcaStrategy } from './wca.strategy';
 import { AuthService } from './auth.service';
-import { LocalStrategy } from './local.strategy';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
 
 @Module({
   imports: [UserModule, HttpModule, PassportModule, JwtModule.register({})],
-  providers: [AuthService, WcaStrategy, LocalStrategy],
+  providers: [AuthService, WcaStrategy],
   controllers: [AuthController],
   exports: [AuthService],
 })

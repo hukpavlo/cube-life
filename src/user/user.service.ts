@@ -14,22 +14,22 @@ export class UserService {
     private userModel: Model<UserDB, UserKey>,
   ) {}
 
-  async create(user: User, confirmed = true) {
+  async create(user: User, oauth = true) {
     const sameUser = await this.find(user.email);
 
     if (sameUser) {
-      if (confirmed) return sameUser;
+      if (oauth) return sameUser;
 
       throw new ConflictException('User with such email already exists');
     }
 
     const newUser: UserDB = {
-      confirmed,
       id: uuid(),
+      confirmed: oauth,
       ...user,
     };
 
-    if (!confirmed) {
+    if (!oauth) {
       newUser.confirmationCode = this.generateConfirmationCode();
     }
 

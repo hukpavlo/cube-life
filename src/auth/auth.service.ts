@@ -12,14 +12,20 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 import { UserService } from '../user/user.service';
 import { User, UserDB } from '../user/user.interface';
-import { ILogin } from './interfaces/login.interface';
+import { ResendCodeDto } from './dto/resend-code.dto';
+import { ITokens } from './interfaces/tokens.interface';
 import { IJwtPayload } from './interfaces/jwt.interface';
 import { ConfigService } from '../shared/config.service';
 import { IMessage } from './interfaces/message.interface';
 import { IRefresh } from './interfaces/refresh.interface';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { CreateUserDto } from '../user/dto/create-user.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -52,8 +58,8 @@ export class AuthService {
     return { message: 'The confirmation code was sent' };
   }
 
-  async confirmRegistration(email: string, code: string): Promise<ILogin> {
-    const user = await this.userService.find(email);
+  async confirmRegistration(registerDto: RegisterDto): Promise<ITokens> {
+    const user = await this.userService.find(registerDto.email);
 
     if (!user) {
       throw new NotFoundException('No user exists with such email');
@@ -63,29 +69,29 @@ export class AuthService {
       throw new GoneException('User with such email is already confirmed');
     }
 
-    await this.validateConfirmationCode(user.id, user.confirmationCode, code);
+    await this.validateConfirmationCode(
+      user.id,
+      user.confirmationCode,
+      registerDto.confirmationCode,
+    );
 
     await this.userService.confirm(user.id);
 
-    return this.login(user);
+    return this.generateTokens(user);
   }
 
-  async resendConfirmationCode(email: string): Promise<IMessage> {
-    const user = await this.userService.find(email);
+  async resendConfirmationCode(resendCodeDto: ResendCodeDto): Promise<IMessage> {
+    const user = await this.userService.find(resendCodeDto.email);
 
     if (!user) {
       throw new NotFoundException('No user exists with such email');
     }
 
-    if (user.confirmed) {
-      throw new GoneException('User with such email is already confirmed');
-    }
-
-    return this.sendNewConfirmationCode(user.id, email);
+    return this.sendNewConfirmationCode(user.id, resendCodeDto.email);
   }
 
-  async forgotPassword(email: string): Promise<IMessage> {
-    const user = await this.userService.find(email);
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<IMessage> {
+    const user = await this.userService.find(forgotPasswordDto.email);
 
     if (!user) {
       throw new NotFoundException('No user exists with such email');
@@ -95,11 +101,11 @@ export class AuthService {
       throw new ForbiddenException("User isn't confirmed");
     }
 
-    return this.sendNewConfirmationCode(user.id, email);
+    return this.sendNewConfirmationCode(user.id, forgotPasswordDto.email);
   }
 
-  async resetPassword(email: string, password: string, code: string): Promise<IMessage> {
-    const user = await this.userService.find(email);
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<IMessage> {
+    const user = await this.userService.find(resetPasswordDto.email);
 
     if (!user) {
       throw new NotFoundException('No user exists with such email');
@@ -109,17 +115,19 @@ export class AuthService {
       throw new ConflictException("The forgot password process wasn't initialized");
     }
 
-    if (user.confirmationCode.value !== code) {
-      throw new ForbiddenException('Wrong confirmation code');
-    }
+    await this.validateConfirmationCode(
+      user.id,
+      user.confirmationCode,
+      resetPasswordDto.confirmationCode,
+    );
 
-    await this.userService.resetPassword(user.id, password);
+    await this.userService.resetPassword(user.id, resetPasswordDto.newPassword);
 
     return { message: 'Password updated' };
   }
 
-  async validate(email: string, password: string): Promise<UserDB> {
-    const user = await this.userService.find(email);
+  async login(loginDto: LoginDto): Promise<ITokens> {
+    const user = await this.userService.find(loginDto.email);
 
     if (!user) {
       throw new NotFoundException('No user exists with such email');
@@ -129,13 +137,13 @@ export class AuthService {
       throw new ForbiddenException("User isn't confirmed");
     }
 
-    const match = await bcrypt.compare(password, user.password);
+    const match = await bcrypt.compare(loginDto.password, user.password);
 
     if (!match) {
       throw new UnauthorizedException('Incorrect password');
     }
 
-    return user;
+    return this.generateTokens(user);
   }
 
   async sendNewConfirmationCode(userId, email): Promise<IMessage> {
@@ -193,7 +201,7 @@ export class AuthService {
     }
   }
 
-  login(user: UserDB): ILogin {
+  generateTokens(user: UserDB): ITokens {
     const payload: IJwtPayload = { username: user.username, sub: user.id };
 
     return {
@@ -204,10 +212,10 @@ export class AuthService {
     };
   }
 
-  refreshToken(refreshToken: string): IRefresh {
+  refreshToken(refreshTokenDto: RefreshTokenDto): IRefresh {
     try {
       const { username, sub } = jwt.verify(
-        refreshToken,
+        refreshTokenDto.refreshToken,
         this.configService.get('REFRESH_SECRET'),
       ) as IJwtPayload;
 
