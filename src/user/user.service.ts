@@ -1,4 +1,4 @@
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { v4 as uuid } from 'uuid';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 import { Injectable, ConflictException } from '@nestjs/common';
