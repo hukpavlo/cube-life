@@ -1,7 +1,9 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, Length, Matches } from 'class-validator';
 
 export class LoginDto {
   @IsEmail()
+  @ApiProperty()
   readonly email: string;
 
   @IsString()
@@ -10,5 +12,6 @@ export class LoginDto {
     message:
       'password between 8 and 20 characters; must contain at least one lowercase letter, one uppercase letter, one numeric digit, but cannot contain whitespace.',
   })
+  @ApiProperty()
   readonly password: string;
 }
