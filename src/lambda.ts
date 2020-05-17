@@ -19,10 +19,10 @@ const bootstrapServer = async (): Promise<Server> => {
   app.useGlobalPipes(new ValidationPipe());
 
   const options = new DocumentBuilder()
-    .setTitle('Cats example')
-    .setDescription('The cats API description')
+    .setTitle('CubeLife')
+    .setDescription('CubeLife api')
     .setVersion('1.0')
-    .addTag('cats')
+    .addServer('/prod')
     .build();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('api', app, document);
